@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Phrazen Soda</title>
+
+    <!-- update the version number  needed -->
+    <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase-firestore.js"></script>
+
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/skeleton.css">
+
+    <style media="screen">
+      #header, #content {
+        margin-top: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row" id="header">
+        <div class="six columns">PHRAZEN SODA</div>
+        <div class="two columns"><a href="#">Menu1</a></div>
+        <div class="two columns"><a href="#">Menu2</a></div>
+        <div class="two columns"><a href="#">Menu3</a></div>
+      </div>
+      <div class="row" id="content">
+        <div class="nine columns">
+          <input class="u-full-width" type="text" placeholder="Hello, world!" id="everyText">
+        </div>
+        <div class="three columns">
+           <input class="button-primary" type="button" value="Save" id="saveButton" onclick="save();">
+        </div>
+      </div>
+    </div>
+    <script>
+      firebase.initializeApp({
+        apiKey: 'AIzaSyAmHgoweY5Hj1XprB38Gy7kpPibF-BtWNE',
+        authDomain: 'phrazensoda.firebaseapp.com',
+        projectId: 'phrazensoda'
+      });
+
+      var loginUser = null;
+
+      function save() {
+        user = loginUser;
+        console.log("user:", user.uid, user.displayName);
+        var text = document.getElementById("everyText").value;
+
+        var db = firebase.firestore();
+        db.collection("sodas").add({
+          text: text,
+          userId: user.uid,
+        }).then(function(docRef) {
+          console.log("soda: ", docRef.id);
+
+          load();
+        }).catch(function(error) {
+          console.error("error soda add: ", error);
+        });
+      }
+
+      function load() {
+        user = loginUser;
+        console.log("user:", user.uid, user.displayName);
+
+        var db = firebase.firestore();
+        db.collection("sodas").get().then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            console.log(`${doc.id} => ${doc.data()}`);
+          });
+        });
+      }
+      document.addEventListener('DOMContentLoaded', function() {
+        firebase.auth().onAuthStateChanged(function(user) {
+          if (user) {
+            loginUser = user;
+            load();
+          } else {
+            var provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithPopup(provider).then(function(result) {
+              loginUser = result.user;
+              load();
+            }).catch(function(error) {
+              console.log("Error signInWithPopup: ", error);
+            });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
